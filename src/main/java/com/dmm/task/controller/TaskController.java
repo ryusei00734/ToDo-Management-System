@@ -75,7 +75,7 @@ public class TaskController {
 	 * @param id 投稿ID
 	 * @return 遷移先
 	 */
-	  @PostMapping("/tasks/create")
+	  @PostMapping("/main/create")
 		public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
 				@AuthenticationPrincipal AccountUserDetails user, Model model) {
 			// バリデーションの結果、エラーがあるかどうかチェック
