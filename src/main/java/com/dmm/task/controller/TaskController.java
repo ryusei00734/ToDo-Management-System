@@ -98,7 +98,7 @@ public class TaskController {
 	 * @param user     ユーザー情報
 	 * @return 遷移先
 	 */
-	@PostMapping("/main/create")
+	@PostMapping("/main/tasks")
 	public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
 			@AuthenticationPrincipal AccountUserDetails user, Model model) {
 		// バリデーションの結果、エラーがあるかどうかチェック
@@ -118,32 +118,6 @@ public class TaskController {
 
 		repo.save(task);
 
-		return "redirect:/tasks";
-	}
-
-	/**
-	 * タスクを追加.
-	 * 
-	 * @param taskForm      タスクデータ
-	 * @param bindingResult 入力チェック結果
-	 * @return 遷移先
-	 */
-	@PostMapping("/tasks")
-	public String addTask(@Validated TaskForm taskForm, BindingResult bindingResult, Model model) {
-		// 入力チェック
-		if (bindingResult.hasErrors()) {
-			// エラーがある場合は、投稿作成画面を再表示し、エラーメッセージを表示する
-			return "add_task";
-		}
-
-		// タスクを保存する
-		Tasks task = new Tasks();
-		task.setTitle(taskForm.getTitle());
-		task.setDetail(taskForm.getDetail());
-		task.setDeadline(taskForm.getDeadline());
-		repo.save(task);
-
-		// 保存が成功した場合は、トップページにリダイレクトする
 		return "redirect:/tasks";
 	}
 

@@ -23,14 +23,6 @@ public class Tasks {
 		// TODO 自動生成されたメソッド・スタブ
 		return null;
 	}
-	public void setDetail(Object detail) {
-		// TODO 自動生成されたメソッド・スタブ
-		
-	}
-	public void setDeadline(Object deadline) {
-		// TODO 自動生成されたメソッド・スタブ
-		
-	}
 }
 
 
