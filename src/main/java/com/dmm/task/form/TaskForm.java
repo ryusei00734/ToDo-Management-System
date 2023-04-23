@@ -15,4 +15,8 @@ public class TaskForm {
 	// textへのバリデーション設定を追加
 	@Size(min = 1, max = 200)
 	private String text;
+	public Integer getId() {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
 }

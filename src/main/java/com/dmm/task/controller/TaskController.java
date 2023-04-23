@@ -120,7 +120,20 @@ public class TaskController {
 
 		return "redirect:/tasks";
 	}
-
+	
+	@PostMapping("/tasks/edit")
+	public String edit(@Validated TaskForm taskForm, BindingResult bindingResult,
+	@AuthenticationPrincipal AccountUserDetails user, Model model) {
+	// バリデーションの結果、エラーがあるかどうかチェック
+	if (bindingResult.hasErrors()) {
+	// エラーがある場合は編集画面を返す
+	Tasks task = repo.findById(taskForm.getId()).get();
+	model.addAttribute("taskForm", taskForm);
+	model.addAttribute("task", task);
+	return "edit";
+	}
+	return null;
+	}
 	/**
 	 * タスクの新規作成画面.
 	 * 
