@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -69,56 +68,6 @@ public class TaskController {
 		return "main";
 	}
 
-	/**
-	 * 投稿を作成.
-	 * 
-	 * @param postForm 送信データ
-	 * @param user     ユーザー情報
-	 * @return 遷移先
-	 */
-	/**
-	 * タスクの新規作成画面.
-	 * 
-	 * @param model モデル
-	 * @param date  追加対象日
-	 * @return
-	 */
-
-	@PostMapping("/tasks/create")
-	public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
-			@AuthenticationPrincipal AccountUserDetails user, Model model) {
-		// バリデーションの結果、エラーがあるかどうかチェック
-		if (bindingResult.hasErrors()) {
-			// エラーがある場合は投稿登録画面を返す
-			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
-			model.addAttribute("tasks", list);
-			model.addAttribute("taskForm", taskForm);
-			return "redirect:/tasks";
-		}
-
-		Tasks task = new Tasks();
-		task.setName(user.getName());
-		task.setTitle(taskForm.getTitle());
-		task.setText(taskForm.getText());
-		task.setDate(LocalDateTime.now());
-
-		repo.save(task);
-
-		return "redirect:/tasks";
-	}
-
-	/**
-	 * タスクの新規作成画面.
-	 * 
-	 * @param model モデル
-	 * @param date  追加対象日
-	 * @return タスクの新規作成画面のテンプレート名
-	 */
-	@GetMapping("/main/create/{date}")
-	public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-
-		return "create";
-	}
 
 	/**
 	 * 投稿を削除する
@@ -126,38 +75,55 @@ public class TaskController {
 	 * @param id 投稿ID
 	 * @return 遷移先
 	 */
-	@Autowired
-	@GetMapping("/main/edit/{id}")
-	public String edit(@PathVariable Integer id, Model model) {
-		Optional<Tasks> optionalTask = repo.findById(id);
-		if (optionalTask.isPresent()) {
-			Tasks task = optionalTask.get();
-			model.addAttribute("taskForm", new TaskForm(task.getTitle(), task.getText()));
-			return "edit";
-		} else {
+	  @PostMapping("/tasks/create")
+		public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
+				@AuthenticationPrincipal AccountUserDetails user, Model model) {
+			// バリデーションの結果、エラーがあるかどうかチェック
+			if (bindingResult.hasErrors()) {
+				// エラーがある場合は投稿登録画面を返す
+				List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+				model.addAttribute("tasks", list);
+				model.addAttribute("taskForm", taskForm);
+				return "redirect:/tasks";
+			}
+
+			Tasks task = new Tasks();
+			task.setName(user.getName());
+			task.setTitle(taskForm.getTitle());
+			task.setText(taskForm.getText());
+			task.setDate(LocalDateTime.now());
+
+			repo.save(task);
+
+			return "redirect:/tasks";
+		}
+
+		/**
+		 * タスクの新規作成画面.
+		 * 
+		 * @param model モデル
+		 * @param date  追加対象日
+		 * @return タスクの新規作成画面のテンプレート名
+		 */
+		@GetMapping("/main/create/{date}")
+		public String create(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+
+			return "create";
+		}
+
+		/**
+		 * 投稿を削除する
+		 * 
+		 * @param id 投稿ID
+		 * @return 遷移先
+		 */
+		
+
+		@PostMapping("/tasks/delete/{id}")
+		public String delete(@PathVariable Integer id) {
+			repo.deleteById(id);
 			return "redirect:/tasks";
 		}
 	}
-
-	@PostMapping("/main/edit/{id}")
-	public String update(@PathVariable Integer id, @Validated TaskForm taskForm, BindingResult bindingResult,
-			Model model) {
-		if (bindingResult.hasErrors()) {
-			return "edit";
-		}
-		Optional<Tasks> optionalTask = repo.findById(id);
-		if (optionalTask.isPresent()) {
-			Tasks task = optionalTask.get();
-			task.setTitle(taskForm.getTitle());
-			task.setText(taskForm.getText());
-			repo.save(task);
-		}
-		return "redirect:/tasks";
-	}
-
-	@PostMapping("/tasks/delete/{id}")
-	public String delete(@PathVariable Integer id) {
-		repo.deleteById(id);
-		return "redirect:/tasks";
-	}
-}
+	  
+	  
