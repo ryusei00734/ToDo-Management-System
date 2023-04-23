@@ -120,20 +120,81 @@ public class TaskController {
 
 		return "redirect:/tasks";
 	}
-	
+
 	@PostMapping("/tasks/edit")
 	public String edit(@Validated TaskForm taskForm, BindingResult bindingResult,
-	@AuthenticationPrincipal AccountUserDetails user, Model model) {
-	// バリデーションの結果、エラーがあるかどうかチェック
-	if (bindingResult.hasErrors()) {
-	// エラーがある場合は編集画面を返す
-	Tasks task = repo.findById(taskForm.getId()).get();
-	model.addAttribute("taskForm", taskForm);
-	model.addAttribute("task", task);
-	return "edit";
+			@AuthenticationPrincipal AccountUserDetails user, Model model) {
+		// バリデーションの結果、エラーがあるかどうかチェック
+		if (bindingResult.hasErrors()) {
+			// エラーがある場合は編集画面を返す
+			Tasks task = repo.findById(taskForm.getId()).get();
+			model.addAttribute("taskForm", taskForm);
+			model.addAttribute("task", task);
+			return "edit";
+		}
+		return null;
 	}
-	return null;
+
+	/**
+	 * タスクの削除.
+	 * 
+	 * @param id タスクID
+	 * @return 遷移先
+	 */
+	@PostMapping("/tasks/delete")
+	public String delete(@Validated TaskForm taskForm, BindingResult bindingResult,
+			@AuthenticationPrincipal AccountUserDetails user, Model model) {
+		repo.deleteById(taskForm.getId());
+		return "redirect:/tasks";
 	}
+
+	@GetMapping("/tasks/logout")
+	public String logout() {
+		return "redirect:/logout";
+	}
+
+	@GetMapping("/tasks/{year}/{month}")
+	public String getCalendar(@PathVariable int year, @PathVariable int month, Model model,
+			@AuthenticationPrincipal AccountUserDetails user) {
+		LocalDate today = LocalDate.of(year, month, 1);
+		LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+
+		int daysInMonth = firstDayOfMonth.lengthOfMonth();
+		DayOfWeek firstDayOfWeek = firstDayOfMonth.getDayOfWeek();
+		int offset = firstDayOfWeek.getValue() % 7;
+
+		LocalDate start = firstDayOfMonth.minusDays(offset);
+		LocalDate end = firstDayOfMonth.plusDays(daysInMonth).plusDays(6 - ((daysInMonth + offset - 1) % 7));
+
+		List<List<LocalDate>> monthList = new ArrayList<>();
+		LocalDate currentDay = start;
+		while (currentDay.isBefore(end.plusDays(1))) {
+			List<LocalDate> week = new ArrayList<>();
+			for (int i = 0; i < 7; i++) {
+				week.add(currentDay);
+				currentDay = currentDay.plusDays(1);
+			}
+			monthList.add(week);
+		}
+
+		LinkedMultiValueMap<LocalDate, Tasks> tasks = new LinkedMultiValueMap<>();
+		if (user.getUsername().equals("admin")) {
+		    tasks = repo.findAllByDeadlineBetween(start.atStartOfDay(), end.plusDays(1).atStartOfDay()).stream()
+		            .collect(LinkedMultiValueMap::new, (map, task) -> map.add(task.getDeadline().toLocalDate(), task),
+		                    LinkedMultiValueMap::addAll);
+		} else {
+		    tasks = repo.findAllByDeadlineBetweenAndName(start.atStartOfDay(), end.plusDays(1).atStartOfDay(),
+		            user.getName()).stream().collect(LinkedMultiValueMap::new,
+		                    (map, task) -> map.add(task.getDeadline().toLocalDate(), task), LinkedMultiValueMap::addAll);
+		}
+
+		model.addAttribute("matrix", monthList);
+		model.addAttribute("tasks", tasks);
+		model.addAttribute("year", year);
+		model.addAttribute("month", month);
+		return "calendar";
+	}
+
 	/**
 	 * タスクの新規作成画面.
 	 * 
